@@ -4,12 +4,10 @@ using System;
 public partial class Player : CharacterBody2D
 {
     [Export] public int speed = 300;
-    private AnimationPlayer _animationPlayer;
     private Weapon _weapon;
 
     public override void _Ready()
     {
-        _animationPlayer = GetNode<AnimationPlayer>("AnimationPlayer");
         _weapon = GetNode<Weapon>("Weapon");
     }
     
@@ -42,9 +40,9 @@ public partial class Player : CharacterBody2D
         
         LookAt(GetGlobalMousePosition());
 
-        if (!_animationPlayer.IsPlaying() && Input.IsMouseButtonPressed(MouseButton.Left))
+        if (Input.IsMouseButtonPressed(MouseButton.Left))
         {
-            _animationPlayer.Play("Weapon swing");
+            _weapon.Swing();
         }
     }
 }

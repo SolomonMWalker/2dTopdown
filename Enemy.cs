@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class Enemy : CharacterBody2D
 {
@@ -15,6 +16,12 @@ public partial class Enemy : CharacterBody2D
         _sprite2D = GetNode<Sprite2D>("Sprite2D");
     }
 
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        CheckForCollisions();
+    }
+
     public void Hit()
     {
         _sprite2D.Modulate = Colors.Red;
@@ -22,7 +29,10 @@ public partial class Enemy : CharacterBody2D
 
     public void CheckForCollisions()
     {
-        var overlapBodies = _area2D.GetOverlappingBodies();
         var overlapAreas = _area2D.GetOverlappingAreas();
+        if (overlapAreas.Any(a => a is Weapon))
+        {
+            Hit();
+        }
     }
 }
