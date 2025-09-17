@@ -46,17 +46,5 @@ public partial class Player : CharacterBody2D
         {
             _animationPlayer.Play("Weapon swing");
         }
-
-        if (!_weapon.collisionPolygon2D.Disabled && _weapon.area2D.HasOverlappingBodies())
-        {
-            var bodies = _weapon.area2D.GetOverlappingBodies();
-            foreach (var body in bodies)
-            {
-                if (body is Enemy enemy)
-                {
-                    enemy.Hit();
-                }
-            }
-        }
     }
 }

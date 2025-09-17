@@ -15,5 +15,23 @@ public partial class Weapon : Node2D
         collisionPolygon2D = area2D.GetNode<CollisionPolygon2D>("CollisionPolygon2D");
         collisionPolygon2D.Disabled = true;
         Visible = false;
+        
+        //TODO: move area2d to root node and move weapon hit code to weapon, not player
+    }
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        if (!collisionPolygon2D.Disabled && area2D.HasOverlappingBodies())
+        {
+            var bodies = area2D.GetOverlappingBodies();
+            foreach (var body in bodies)
+            {
+                if (body is Enemy enemy)
+                {
+                    enemy.Hit();    
+                }
+            }
+        }
     }
 }
