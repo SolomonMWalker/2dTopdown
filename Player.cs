@@ -6,6 +6,15 @@ public partial class Player : CharacterBody2D
     [Export] public int speed = 300;
     private Weapon _weapon;
 
+    public enum MovementState
+    {
+        Walking,
+        Crouching,
+        Dashing,
+        Sprinting,
+        Attacking
+    } //TODO: implement dash going into sprinting
+
     public override void _Ready()
     {
         _weapon = GetNode<Weapon>("Weapon");
