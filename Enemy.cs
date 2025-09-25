@@ -5,14 +5,22 @@ using System.Linq;
 public partial class Enemy : CharacterBody2D
 {
     //nav help from https://docs.godotengine.org/en/stable/tutorials/navigation/navigation_introduction_2d.html
-    [Export] public Node2D point1;
-    [Export] public Node2D point2;
-    [Export] public int health = 3;
-    public int movementSpeed = 100;
+    [Export] public Node2D Point1;
+    [Export] public Node2D Point2;
+    [Export] public int Health = 3;
+    [Export] public int RotateRadius = 96/2;
+    [Export] public int AnglePerNavPoint = 3;
+    public int MovementSpeed = 100;
     public Vector2 MovementTarget
     {
         get { return _navigationAgent.TargetPosition; }
-        set { _navigationAgent.TargetPosition = value; }
+        set => _navigationAgent.TargetPosition = value;
+    }
+
+    public enum NavMode
+    {
+        Chase,
+        RotateAround
     }
     
     private Area2D _area2D;
@@ -20,7 +28,8 @@ public partial class Enemy : CharacterBody2D
     private Sprite2D _sprite2D;
     private NavigationAgent2D _navigationAgent;
     private AnimationPlayer _animationPlayer;
-
+    private NavMode _navMode;
+    private float _degreesSoFar = 0;
     public override void _Ready()
     {
         base._Ready();
@@ -33,7 +42,10 @@ public partial class Enemy : CharacterBody2D
         // These values need to be adjusted for the actor's speed
         // and the navigation layout.
         _navigationAgent.PathDesiredDistance = 4.0f;
-        _navigationAgent.TargetDesiredDistance = 4.0f;
+        _navigationAgent.TargetDesiredDistance = 1.0f;
+        _navMode = NavMode.Chase;
+        
+        Callable.From(ActorSetup).CallDeferred();
     }
 
     public override void _Process(double delta)
@@ -46,16 +58,49 @@ public partial class Enemy : CharacterBody2D
     {
         base._PhysicsProcess(delta);
 
-        if (_navigationAgent.IsNavigationFinished())
+        var switched = false;
+        
+        var distance = GlobalTransform.Origin.DistanceTo(Point1.GlobalPosition);
+        
+        if (_navMode == NavMode.Chase)
         {
-            MovementTarget = MovementTarget == point1.GetGlobalPosition() 
-                ? point2.GetGlobalPosition() : point1.GetGlobalPosition();
+            if (distance < RotateRadius)
+            {
+                _navMode = NavMode.RotateAround;
+                switched = true;
+                //Get current degrees of incoming enemy
+                _degreesSoFar = Mathf.RadToDeg(Mathf.Atan2(
+                    GlobalTransform.Origin.Y - Point1.GlobalPosition.Y,
+                    GlobalTransform.Origin.X - Point1.GlobalPosition.X));
+            }
+        }
+
+        if (_navMode == NavMode.RotateAround)
+        {
+            if (distance > RotateRadius + 10)
+            {
+                _navMode = NavMode.Chase;
+            }
+        }
+        
+        if (switched || _navigationAgent.IsNavigationFinished())
+        {
+            if (_navMode == NavMode.Chase)
+            {
+                MovementTarget = Point1.GlobalPosition;
+            }
+            else if (_navMode == NavMode.RotateAround)
+            {
+                var angle = (AnglePerNavPoint + _degreesSoFar) % 360;
+                _degreesSoFar = angle;
+                MovementTarget = GetNextPathInCircle(angle, Point1.GlobalPosition, RotateRadius);
+            }
         }
 
         Vector2 currentAgentPosition = GlobalTransform.Origin;
         Vector2 nextPathPosition = _navigationAgent.GetNextPathPosition();
 
-        Velocity = currentAgentPosition.DirectionTo(nextPathPosition) * movementSpeed;
+        Velocity = currentAgentPosition.DirectionTo(nextPathPosition) * MovementSpeed;
         MoveAndSlide();
     }
     
@@ -65,7 +110,15 @@ public partial class Enemy : CharacterBody2D
         await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 
         // Now that the navigation map is no longer empty, set the movement target.
-        MovementTarget = point1.GlobalPosition;
+        MovementTarget = Point1.GlobalPosition;
+    }
+
+    private Vector2 GetNextPathInCircle(float angleInDeg, Vector2 center, float radius)
+    {
+        var angleInRads = Mathf.DegToRad(angleInDeg);
+        var x = radius * Mathf.Cos(angleInRads);
+        var y = radius * Mathf.Sin(angleInRads);
+        return center + new Vector2(x, y);
     }
 
     public void Hit()
@@ -73,10 +126,10 @@ public partial class Enemy : CharacterBody2D
         if (!_animationPlayer.IsPlaying())
         {
             _animationPlayer.Play("Hit");
-            health -= 1;
+            Health -= 1;
         }
 
-        if (health <= 0)
+        if (Health <= 0)
         {
             QueueFree();
         }

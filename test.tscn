@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=4 uid="uid://dpgckv1guhfq0"]
+[gd_scene load_steps=17 format=4 uid="uid://dpgckv1guhfq0"]
 
 [ext_resource type="TileSet" uid="uid://dyei07bl2lau8" path="res://new_tile_set.tres" id="1_37kl0"]
 [ext_resource type="Script" uid="uid://wxfsr3pvpxns" path="res://Player.cs" id="2_6uqi0"]
@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://c1lfygg7jb2yv" path="res://Enemy.cs" id="5_g14j6"]
 [ext_resource type="Texture2D" uid="uid://0qw5iyqdryf0" path="res://testEnemy.png" id="5_ykrsh"]
 [ext_resource type="Shape2D" uid="uid://bviaq04tskc8d" path="res://enemy.tres" id="8_ehkex"]
+[ext_resource type="Texture2D" uid="uid://cr0ulfvpxdynw" path="res://Circle.png" id="9_xersf"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ykrsh"]
 radius = 13.0
@@ -144,13 +145,18 @@ libraries = {
 &"": SubResource("AnimationLibrary_g14j6")
 }
 
-[node name="Enemy" type="CharacterBody2D" parent="." node_paths=PackedStringArray("point1", "point2")]
+[node name="Sprite2D2" type="Sprite2D" parent="Player"]
+modulate = Color(1, 0.62352943, 1, 0.5568628)
+scale = Vector2(3, 3)
+texture = ExtResource("9_xersf")
+
+[node name="Enemy" type="CharacterBody2D" parent="." node_paths=PackedStringArray("Point1", "Point2")]
 physics_interpolation_mode = 1
 position = Vector2(446, 111)
 motion_mode = 1
 script = ExtResource("5_g14j6")
-point1 = NodePath("../Node/Point1")
-point2 = NodePath("../Node/Point2")
+Point1 = NodePath("../Player")
+Point2 = NodePath("../Node/Point2")
 
 [node name="Sprite2D" type="Sprite2D" parent="Enemy"]
 texture = ExtResource("5_ykrsh")
@@ -173,7 +179,12 @@ libraries = {
 [node name="Node" type="Node" parent="."]
 
 [node name="Point1" type="Node2D" parent="Node"]
-position = Vector2(367, 73)
+position = Vector2(423, 318)
+
+[node name="Sprite2D" type="Sprite2D" parent="Node/Point1"]
+modulate = Color(1, 0.62352943, 1, 0.5568628)
+scale = Vector2(3, 3)
+texture = ExtResource("9_xersf")
 
 [node name="Point2" type="Node2D" parent="Node"]
-position = Vector2(87, 81)
+position = Vector2(266, 168)
